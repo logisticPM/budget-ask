@@ -337,7 +337,15 @@ function startStudent(){
   $("student").classList.remove("hidden");
   const code = (P.get("s")||"").toUpperCase();
   if(!validCode(code)){
-    $("formView").innerHTML = "<h1>Link incomplete</h1><p class='sub'>Please scan the QR code on the screen again.</p>";
+    $("formView").innerHTML = `<h1>The Budget Ask</h1><p class='sub'>Scan the QR code on the screen, or type the session code shown there.</p>
+      <div class="field"><label class="q" for="codeIn">Session code</label>
+      <input id="codeIn" type="text" autocapitalize="characters" autocomplete="off" maxlength="8" placeholder="e.g. K7QM" style="width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font-size:20px;letter-spacing:3px;text-transform:uppercase"></div>
+      <button class="primary" id="codeGo">Continue</button><div class="err" id="codeErr"></div>
+      <p class="sub" style="margin-top:28px">Facilitator? <a href="?view=present">Open the presenter screen</a></p>`;
+    const go=()=>{ const c=$("codeIn").value.trim().toUpperCase();
+      if(!validCode(c)) { $("codeErr").textContent="Codes are 4–8 letters or digits."; return; }
+      const u=new URL(location.href); u.searchParams.set("s",c); location.href=u.toString(); };
+    $("codeGo").onclick=go; $("codeIn").addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
     return;
   }
   const state = {deal:null,kpi:null,asked:null};
