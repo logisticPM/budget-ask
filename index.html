@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>The Budget Ask</title>
+<style>
+:root{
+  --red:#D1495B; --teal:#2A7F8A; --navy:#1D3557; --salmon:#E8B093; --sand:#F2DDAA;
+  --ink:#1b1f24; --muted:#6b7280; --line:#e5e7eb; --bg:#ffffff; --panel:#f5f7fa;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif}
+button,input,select{font:inherit}
+.hidden{display:none!important}
+
+/* ---------- student form ---------- */
+#student{max-width:460px;margin:0 auto;padding:24px 16px 48px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+#student h1{font-size:22px;margin:0 0 4px;color:var(--navy)}
+#student .sub{color:var(--muted);font-size:14px;margin:0 0 20px}
+.field{margin-bottom:18px}
+.field label.q{display:block;font-weight:600;margin-bottom:8px;font-size:15px}
+.field input[type=number]{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font-size:18px}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;padding:12px 8px;border:1px solid #cbd5e1;background:#fff;border-radius:10px;font-size:15px;cursor:pointer}
+.seg button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.amount-wrap{position:relative}
+.amount-wrap span{position:absolute;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px}
+.amount-wrap .pre{left:12px}.amount-wrap .suf{right:12px}
+.amount-wrap input{padding-left:28px!important;padding-right:34px!important}
+.primary{width:100%;padding:14px;border:0;border-radius:12px;background:var(--teal);color:#fff;font-size:17px;font-weight:600;cursor:pointer}
+.primary:disabled{opacity:.5}
+.err{color:var(--red);font-size:14px;min-height:20px;margin-top:8px}
+.done{text-align:center;padding:40px 8px}
+.done .big{font-size:48px}
+.link{background:none;border:0;color:var(--teal);text-decoration:underline;cursor:pointer;font-size:15px;margin-top:16px}
+
+/* ---------- presenter ---------- */
+#presenter{padding:20px 28px;min-height:100vh;display:flex;flex-direction:column}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.bar .title{font-family:Georgia,serif;font-size:22px;color:var(--navy);font-weight:700;margin-right:auto}
+.bar button{padding:8px 14px;border:1px solid #cbd5e1;background:#fff;border-radius:8px;cursor:pointer;font-size:14px}
+.bar button.main{background:var(--navy);color:#fff;border-color:var(--navy)}
+.pill{font-size:13px;color:var(--muted);padding:4px 10px;border-radius:999px;background:var(--panel)}
+.pill.live::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:6px;vertical-align:middle}
+
+#waiting{flex:1;display:flex;align-items:center;justify-content:center;gap:64px;flex-wrap:wrap;padding:24px 0}
+#qr{background:#fff;padding:14px;border:1px solid var(--line);border-radius:12px}
+#qr img,#qr canvas{display:block}
+.join h2{font-size:34px;margin:0 0 10px;color:var(--navy)}
+.join .url{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:18px;color:var(--teal);word-break:break-all;max-width:520px}
+.join .code{font-size:20px;margin-top:10px}
+.join .code b{letter-spacing:4px;font-size:30px;color:var(--red)}
+.counter{font-size:72px;font-weight:700;color:var(--navy);line-height:1;margin-top:28px}
+.counter small{display:block;font-size:20px;font-weight:400;color:var(--muted);margin-top:6px}
+.instr{font-size:18px;color:var(--muted);margin-top:14px}
+
+#reveal{flex:1;padding-top:10px}
+.tabs{display:flex;gap:6px;margin:10px 0 4px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.tabs button{padding:6px 12px;border:0;background:none;border-bottom:2px solid transparent;cursor:pointer;color:var(--muted);font-size:14px}
+.tabs button.on{color:var(--navy);border-bottom-color:var(--navy);font-weight:600}
+#chart{width:100%;height:auto;display:block}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:4px}
+.stat{background:var(--panel);border-radius:12px;padding:14px 16px}
+.stat .v{font-size:34px;font-weight:700;color:var(--navy)}
+.stat .l{font-size:14px;color:var(--muted);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.stat.red .v{color:var(--red)}
+.lower{display:grid;grid-template-columns:1.1fr 1fr;gap:24px;margin-top:18px}
+.hist h3,.insight h3{margin:0 0 10px;font-size:18px;color:var(--navy)}
+.hrow{display:grid;grid-template-columns:110px 1fr 40px;align-items:center;gap:10px;margin:6px 0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:15px}
+.hbar{height:22px;border-radius:4px;background:var(--salmon);transition:width .4s}
+.hbar.nd{background:#cbd5e1}.hbar.hi{background:var(--sand)}
+.insight p{font-size:17px;line-height:1.45;margin:0 0 10px}
+.insight b{color:var(--navy)}
+.note{font-size:13px;color:var(--muted);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin-top:8px}
+
+/* figure 2 */
+.knows{display:grid;grid-template-columns:1fr auto 1fr;gap:18px;align-items:center;max-width:1100px;margin:30px auto}
+.card{border:3px solid;border-radius:10px;padding:18px 26px;background:#eef1f6}
+.card h3{text-align:center;margin:0 0 14px;font-size:28px}
+.card ul{margin:0;padding-left:20px;font-size:22px;line-height:1.9}
+.card.m{border-color:var(--teal)}.card.m h3{color:var(--teal)}
+.card.f{border-color:var(--red)}.card.f h3{color:var(--red)}
+.gap{text-align:center;color:var(--navy);font-style:italic;font-size:20px}
+.gap .arrow{font-size:40px;font-style:normal}
+
+/* manual modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:10}
+.modal .box{background:#fff;border-radius:14px;padding:22px 24px;width:min(420px,92vw);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.modal h3{margin:0 0 6px}
+.modal .row{display:flex;justify-content:space-between;align-items:center;margin:8px 0}
+.modal input{width:80px;padding:6px 8px;border:1px solid #cbd5e1;border-radius:8px}
+.modal .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.modal .acts button{padding:8px 14px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;cursor:pointer}
+.modal .acts button.main{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+@media (max-width:900px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .lower{grid-template-columns:1fr}
+  .knows{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= STUDENT VIEW ================= -->
+<section id="student" class="hidden">
+  <div id="formView">
+    <h1>The Budget Ask — your result</h1>
+    <p class="sub">One submission per pair. <b>Marketing Manager submits.</b></p>
+
+    <div class="field">
+      <label class="q" for="pair">Pair number</label>
+      <input id="pair" type="number" inputmode="numeric" min="1" max="200" placeholder="e.g. 7">
+    </div>
+
+    <div class="field">
+      <label class="q">Did you reach a deal?</label>
+      <div class="seg" id="dealSeg">
+        <button type="button" data-v="1">Deal</button>
+        <button type="button" data-v="0">No deal</button>
+      </div>
+    </div>
+
+    <div class="field" id="amountField">
+      <label class="q" for="amount">Agreed budget</label>
+      <div class="amount-wrap">
+        <span class="pre">$</span>
+        <input id="amount" type="number" inputmode="decimal" min="0" step="1" placeholder="e.g. 95">
+        <span class="suf">k</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="q">Did you agree KPIs / monthly reporting / a stop-go review?</label>
+      <div class="seg" id="kpiSeg">
+        <button type="button" data-v="1">Yes</button>
+        <button type="button" data-v="0">No</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="q">Did anyone ask what happens to budget that isn't spent?</label>
+      <div class="seg" id="askSeg">
+        <button type="button" data-v="1">Yes</button>
+        <button type="button" data-v="0">No</button>
+      </div>
+    </div>
+
+    <button class="primary" id="submitBtn">Submit</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div id="doneView" class="done hidden">
+    <div class="big">✓</div>
+    <h2>Submitted</h2>
+    <p id="doneText"></p>
+    <p style="color:var(--muted)">Eyes on the screen.</p>
+    <button class="link" id="editBtn">Made a mistake? Edit</button>
+  </div>
+</section>
+
+<!-- ================= PRESENTER VIEW ================= -->
+<section id="presenter" class="hidden">
+  <div class="bar">
+    <div class="title">The Budget Ask</div>
+    <span class="pill" id="status">connecting…</span>
+    <span class="pill" id="sessionPill"></span>
+    <button id="toggleReveal" class="main">Reveal</button>
+    <button id="manualBtn">Manual counts</button>
+    <button id="newBtn">New session</button>
+    <button id="fsBtn">Full screen</button>
+  </div>
+
+  <div id="waiting">
+    <div id="qr"></div>
+    <div class="join">
+      <h2>Marketing Managers: submit your result</h2>
+      <div class="url" id="joinUrl"></div>
+      <div class="code">Session code <b id="codeBig"></b></div>
+      <div class="counter"><span id="count">0</span><small>pairs submitted</small></div>
+      <div class="instr">Submit as soon as you agree — or say "no deal".</div>
+    </div>
+  </div>
+
+  <div id="reveal" class="hidden">
+    <div class="tabs">
+      <button data-t="range" class="on">The real bargaining range</button>
+      <button data-t="knows">What each side knew</button>
+    </div>
+
+    <div id="tab-range">
+      <svg id="chart" viewBox="0 0 1160 470" role="img" aria-label="Bargaining range with class results"></svg>
+      <div class="stats">
+        <div class="stat"><div class="v" id="sMedian">–</div><div class="l">median deal</div></div>
+        <div class="stat"><div class="v" id="sZopa">–</div><div class="l">of the $80k–$140k zone used (median pair)</div></div>
+        <div class="stat red"><div class="v" id="sLeft">–</div><div class="l">left on the table, average per pair</div></div>
+        <div class="stat red"><div class="v" id="sTotal">–</div><div class="l">left on the table, whole class</div></div>
+      </div>
+      <div class="lower">
+        <div class="hist">
+          <h3>Where the class landed</h3>
+          <div id="hist"></div>
+        </div>
+        <div class="insight">
+          <h3>What made the difference</h3>
+          <div id="insight"></div>
+        </div>
+      </div>
+      <div class="note" id="note"></div>
+    </div>
+
+    <div id="tab-knows" class="hidden">
+      <div class="knows">
+        <div class="card m">
+          <h3>MARKETING knows</h3>
+          <ul>
+            <li>Needs $120k, can live on $80k</li>
+            <li>Partner deal worth ~$75k (BATNA)</li>
+            <li>Assumes Finance is short of cash</li>
+            <li>Does NOT know about the reserve</li>
+          </ul>
+        </div>
+        <div class="gap"><div class="arrow">⟷</div>the gap<br>questions close</div>
+        <div class="card f">
+          <h3>FINANCE knows</h3>
+          <ul>
+            <li>$140k reserve expires this year</li>
+            <li>Unspent money is clawed back</li>
+            <li>Needs KPIs + monthly reporting</li>
+            <li>Told to open low and sound strict</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="manualModal" class="modal hidden">
+  <div class="box">
+    <h3>Manual counts</h3>
+    <p class="note" style="margin-top:0">Use if the network fails: enter the show-of-hands counts. These replace online submissions until cleared.</p>
+    <div id="manualRows"></div>
+    <div class="acts">
+      <button id="manualClear">Use online data</button>
+      <button id="manualCancel">Cancel</button>
+      <button id="manualApply" class="main">Apply</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script type="module">
+/* =============================================================
+   1) PASTE YOUR FIREBASE CONFIG HERE
+   ============================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCA0EsBGj-_WT830fZ-X0D1DD5kMec4wVI",
+  authDomain: "ob-test-23f48.firebaseapp.com",
+  databaseURL: "https://ob-test-23f48-default-rtdb.firebaseio.com",
+  projectId: "ob-test-23f48",
+  storageBucket: "ob-test-23f48.firebasestorage.app",
+  messagingSenderId: "589727833810",
+  appId: "1:589727833810:web:05e2e6d1ecdb404233170b"
+};
+/* ============================================================= */
+
+const FB_VER = "10.12.2";
+const P = new URLSearchParams(location.search);
+const DEMO = P.has("demo");
+const IS_PRESENTER = P.get("view") === "present";
+
+/* ---------- constants from the game ---------- */
+const FIN_OPEN = 60, WALK = 80, ASK = 120, CEIL = 140;
+const BUCKETS = [
+  {key:"le80",  label:"≤ $80k",      test:a=>a<=80,           mid:80,  cls:""},
+  {key:"b100",  label:"$81–100k",    test:a=>a>80&&a<=100,    mid:92,  cls:""},
+  {key:"b120",  label:"$101–120k",   test:a=>a>100&&a<=120,   mid:112, cls:"hi"},
+  {key:"gt120", label:"> $120k",     test:a=>a>120&&a<=CEIL,  mid:130, cls:"hi"},
+];
+
+/* ---------- data layer: Firebase or demo ---------- */
+let api;
+async function initData(){
+  if (DEMO){ api = demoApi(); return; }
+  const [{initializeApp},{getDatabase,ref,set,onValue,serverTimestamp}] = await Promise.all([
+    import(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-app.js`),
+    import(`https://www.gstatic.com/firebasejs/${FB_VER}/firebase-database.js`)
+  ]);
+  const db = getDatabase(initializeApp(firebaseConfig));
+  api = {
+    submit:(code,pair,rec)=>set(ref(db,`sessions/${code}/subs/${pair}`),{...rec,ts:serverTimestamp()}),
+    watch:(code,cb)=>onValue(ref(db,`sessions/${code}/subs`),s=>cb(s.val()||{}),e=>setStatus("error: "+e.code,false)),
+    connected:cb=>onValue(ref(db,".info/connected"),s=>cb(!!s.val()))
+  };
+}
+function demoApi(){
+  const store = {}; const subs = [];
+  const emit = code => subs.forEach(s=>s.code===code && s.cb({...(store[code]||{})}));
+  // seed a realistic class
+  const seed = code=>{
+    const r=()=>Math.random();
+    store[code]={};
+    for(let i=1;i<=22;i++){
+      const asked = r()<0.25, kpi = asked ? r()<0.8 : r()<0.3;
+      let deal = r()>0.07, amt;
+      if(asked&&kpi) amt = 115+Math.round(r()*25);
+      else amt = [80,85,85,90,90,90,95,95,100,100,105,110][Math.floor(r()*12)];
+      store[code][i] = deal ? {deal:true,amount:amt,kpi,asked} : {deal:false,kpi:false,asked};
+    }
+    emit(code);
+  };
+  return {
+    submit:async(code,pair,rec)=>{store[code]=store[code]||{};store[code][pair]=rec;emit(code);},
+    watch:(code,cb)=>{subs.push({code,cb}); if(IS_PRESENTER) setTimeout(()=>seed(code),300); else cb(store[code]||{});},
+    connected:cb=>cb(true)
+  };
+}
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtK = v => "$"+(Math.round(v*10)/10).toString().replace(/\.0$/,"")+"k";
+function quantile(sorted,q){
+  if(!sorted.length) return NaN;
+  const pos=(sorted.length-1)*q, lo=Math.floor(pos), hi=Math.ceil(pos);
+  return sorted[lo]+(sorted[hi]-sorted[lo])*(pos-lo);
+}
+const CODE_CHARS="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+const newCode = ()=>Array.from({length:4},()=>CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]).join("");
+const validCode = c => /^[A-Z0-9]{4,8}$/.test(c||"");
+
+/* =============================================================
+   STUDENT
+   ============================================================= */
+function startStudent(){
+  $("student").classList.remove("hidden");
+  const code = (P.get("s")||"").toUpperCase();
+  if(!validCode(code)){
+    $("formView").innerHTML = "<h1>Link incomplete</h1><p class='sub'>Please scan the QR code on the screen again.</p>";
+    return;
+  }
+  const state = {deal:null,kpi:null,asked:null};
+  const bindSeg=(id,key,after)=>{
+    const seg=$(id);
+    seg.addEventListener("click",e=>{
+      const b=e.target.closest("button"); if(!b) return;
+      state[key]=b.dataset.v==="1";
+      [...seg.children].forEach(x=>x.classList.toggle("on",x===b));
+      after&&after();
+    });
+  };
+  bindSeg("dealSeg","deal",()=>$("amountField").classList.toggle("hidden",state.deal===false));
+  bindSeg("kpiSeg","kpi"); bindSeg("askSeg","asked");
+
+  $("submitBtn").onclick = async ()=>{
+    const err=$("err"); err.textContent="";
+    const pair=parseInt($("pair").value,10);
+    if(!(pair>=1&&pair<=200)) return err.textContent="Enter your pair number (1–200).";
+    if(state.deal===null) return err.textContent="Choose Deal or No deal.";
+    let amount=null;
+    if(state.deal){
+      amount=parseFloat($("amount").value);
+      if(!(amount>=0&&amount<=1000)) return err.textContent="Enter the agreed budget in $k (e.g. 95).";
+      amount=Math.round(amount*10)/10;
+    }
+    if(state.kpi===null) return err.textContent="Answer the KPI question.";
+    if(state.asked===null) return err.textContent="Answer the last question.";
+    const rec = state.deal ? {deal:true,amount,kpi:state.kpi,asked:state.asked}
+                           : {deal:false,kpi:state.kpi,asked:state.asked};
+    $("submitBtn").disabled=true;
+    try{
+      await Promise.race([api.submit(code,pair,rec), new Promise((_,r)=>setTimeout(()=>r(new Error("timeout")),8000))]);
+      $("doneText").textContent = `Pair ${pair}: ` + (state.deal ? `deal at ${fmtK(amount)}` : "no deal");
+      $("formView").classList.add("hidden"); $("doneView").classList.remove("hidden");
+    }catch(e){
+      err.textContent="Could not submit — check your connection and try again.";
+    }finally{ $("submitBtn").disabled=false; }
+  };
+  $("editBtn").onclick=()=>{ $("doneView").classList.add("hidden"); $("formView").classList.remove("hidden"); };
+}
+
+/* =============================================================
+   PRESENTER
+   ============================================================= */
+let code, unsub=null, online={}, manual=null, revealed=false;
+function setStatus(t,live){ const s=$("status"); s.textContent=t; s.classList.toggle("live",!!live); }
+
+function studentUrl(){
+  const base = location.origin + location.pathname;
+  return base + "?s=" + code + (DEMO?"&demo":"");
+}
+function startPresenter(){
+  $("presenter").classList.remove("hidden");
+  code = (P.get("s")||"").toUpperCase();
+  if(!validCode(code)) code=newCode();
+  setSession(code);
+  api.connected(c=>setStatus(DEMO?"demo data":(c?"live":"offline"),c));
+
+  $("toggleReveal").onclick=()=>{ revealed=!revealed; render(); };
+  $("newBtn").onclick=()=>{ if(confirmNew()) { manual=null; setSession(newCode()); } };
+  $("fsBtn").onclick=()=>{ document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.(); };
+  document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+    document.querySelectorAll(".tabs button").forEach(x=>x.classList.toggle("on",x===b));
+    $("tab-range").classList.toggle("hidden",b.dataset.t!=="range");
+    $("tab-knows").classList.toggle("hidden",b.dataset.t!=="knows");
+  });
+  document.addEventListener("keydown",e=>{ if(e.target.tagName==="INPUT") return; if(e.key===" "||e.key==="r"){e.preventDefault();revealed=!revealed;render();} });
+  setupManual();
+}
+function confirmNew(){
+  // in-page confirmation instead of a blocking browser dialog
+  const b=$("newBtn");
+  if(b.dataset.armed){ delete b.dataset.armed; b.textContent="New session"; return true; }
+  b.dataset.armed="1"; b.textContent="Click again to confirm";
+  setTimeout(()=>{ if(b.dataset.armed){delete b.dataset.armed;b.textContent="New session";} },3000);
+  return false;
+}
+function setSession(c){
+  code=c; revealed=false; online={};
+  const u=new URL(location.href); u.searchParams.set("view","present"); u.searchParams.set("s",code);
+  history.replaceState(null,"",u);
+  $("sessionPill").textContent="session "+code;
+  $("codeBig").textContent=code;
+  const url=studentUrl();
+  $("joinUrl").textContent=url.replace(/^https?:\/\//,"");
+  const q=$("qr"); q.innerHTML="";
+  if(window.QRCode) new QRCode(q,{text:url,width:300,height:300,correctLevel:QRCode.CorrectLevel.M});
+  else q.textContent="(QR library not loaded)";
+  if(unsub) try{unsub();}catch(e){}
+  unsub = api.watch(code,v=>{ online=v; render(); });
+  render();
+}
+
+/* ----- normalise records ----- */
+function records(){
+  if(manual){
+    const out=[];
+    BUCKETS.forEach(b=>{ for(let i=0;i<(manual[b.key]||0);i++) out.push({deal:true,amount:b.mid,kpi:null,asked:null,approx:true}); });
+    for(let i=0;i<(manual.nd||0);i++) out.push({deal:false});
+    return out;
+  }
+  return Object.values(online||{}).filter(r=>r&&typeof r==="object");
+}
+
+function compute(){
+  const all=records();
+  const deals=all.filter(r=>r.deal===true&&typeof r.amount==="number");
+  const valid=deals.filter(r=>r.amount>=0&&r.amount<=CEIL);
+  const invalid=deals.length-valid.length;
+  const noDeal=all.filter(r=>r.deal===false).length;
+  const amts=valid.map(r=>r.amount).sort((a,b)=>a-b);
+  const n=amts.length;
+  const med=quantile(amts,.5);
+  let lo=quantile(amts,.25), hi=quantile(amts,.75);
+  if(n>0&&n<4){ lo=amts[0]; hi=amts[n-1]; }
+  const left=n? amts.reduce((s,a)=>s+(CEIL-a),0)/n : NaN;
+  // no-deal pairs leave the whole reserve unspent for Finance; count their value left as CEIL-80 of joint gain? keep simple: exclude
+  const buckets=BUCKETS.map(b=>({...b,count:amts.filter(b.test).length}));
+  return {all,valid,amts,n,med,lo,hi,left,noDeal,invalid,buckets,total:all.length};
+}
+
+function render(){
+  const s=compute();
+  $("count").textContent=s.total;
+  $("waiting").classList.toggle("hidden",revealed);
+  $("reveal").classList.toggle("hidden",!revealed);
+  $("toggleReveal").textContent=revealed?"Back to QR":"Reveal";
+  if(!revealed) return;
+  drawChart(s);
+  $("sMedian").textContent = s.n?fmtK(s.med):"–";
+  $("sZopa").textContent   = s.n?Math.max(0,Math.round((s.med-WALK)/(CEIL-WALK)*100))+"%":"–";
+  $("sLeft").textContent   = s.n?fmtK(s.left):"–";
+  $("sTotal").textContent  = s.n?fmtK(s.left*s.n):"–";
+
+  const rows=[...s.buckets.map(b=>({label:b.label,count:b.count,cls:b.cls})),{label:"No deal",count:s.noDeal,cls:"nd"}];
+  const max=Math.max(1,...rows.map(r=>r.count));
+  $("hist").innerHTML=rows.map(r=>`<div class="hrow"><div>${r.label}</div><div><div class="hbar ${r.cls}" style="width:${r.count/max*100}%"></div></div><div><b>${r.count}</b></div></div>`).join("");
+
+  $("insight").innerHTML=insights(s);
+  const notes=[];
+  if(s.invalid) notes.push(`${s.invalid} submission(s) above $140k excluded — Finance could not release that much.`);
+  const below=s.amts.filter(a=>a<WALK).length;
+  if(below) notes.push(`${below} pair(s) settled below Marketing's $80k walk-away.`);
+  if(manual) notes.push("Showing manual counts (bucket mid-points), not online submissions.");
+  $("note").textContent=notes.join("  ·  ");
+}
+
+function insights(s){
+  if(manual) return "<p>Manual counts: KPI and question data not available.</p>";
+  const v=s.valid; if(!v.length) return "<p>No deals submitted yet.</p>";
+  const med=arr=>{const a=arr.map(r=>r.amount).sort((x,y)=>x-y);return a.length?quantile(a,.5):NaN;};
+  const asked=v.filter(r=>r.asked), notAsked=v.filter(r=>!r.asked);
+  const kpi=v.filter(r=>r.kpi), noKpi=v.filter(r=>!r.kpi);
+  const pct=(a,b)=>b?Math.round(a/b*100)+"%":"–";
+  const line=(g1,l1,g2,l2)=>`<b>${g1.length?fmtK(med(g1)):"–"}</b> median when ${l1} (${g1.length} pairs) vs <b>${g2.length?fmtK(med(g2)):"–"}</b> when ${l2} (${g2.length}).`;
+  return `
+    <p><b>${pct(asked.length,v.length)}</b> of pairs asked what happens to unspent budget. ${line(asked,"they asked",notAsked,"they didn't")}</p>
+    <p><b>${pct(kpi.length,v.length)}</b> agreed a KPI / reporting package. ${line(kpi,"they did",noKpi,"they didn't")}</p>`;
+}
+
+/* ----- SVG chart, modelled on Figure 1 ----- */
+function drawChart(s){
+  const svg=$("chart");
+  const X0=60,X1=1110, D0=50, D1=150;
+  const x=v=>X0+(Math.min(D1,Math.max(D0,v))-D0)/(D1-D0)*(X1-X0);
+  const AX=300, BT=262, BB=338;
+  const C={red:"#D1495B",teal:"#2A7F8A",navy:"#1D3557",salmon:"#E8B093",sand:"#F2DDAA",grey:"#6b7280"};
+  let g="";
+  const t=(xx,yy,txt,o={})=>`<text x="${xx}" y="${yy}" text-anchor="${o.a||"middle"}" fill="${o.c||C.navy}" font-size="${o.s||22}" ${o.it?'font-style="italic"':""} ${o.b?'font-weight="700"':""}>${esc(txt)}</text>`;
+
+  g+=t(X1+44,AX+66,"Campaign budget ($k)",{a:"end",c:C.grey,s:16});
+  g+=t((x(WALK)+x(ASK))/2,236,"ZOPA:  $80k – $140k",{b:1,s:26});
+
+  // bands
+  if(s.n){
+    const lo=Math.max(D0,s.lo), hi=Math.min(CEIL,s.hi);
+    const yStart=Math.max(hi,WALK);
+    g+=`<rect x="${x(yStart)}" y="${BT}" width="${Math.max(0,x(CEIL)-x(yStart))}" height="${BB-BT}" fill="${C.sand}"/>`;
+    g+=`<rect x="${x(lo)}" y="${BT}" width="${Math.max(4,x(hi)-x(lo))}" height="${BB-BT}" fill="${C.salmon}"/>`;
+  } else {
+    g+=`<rect x="${x(WALK)}" y="${BT}" width="${x(CEIL)-x(WALK)}" height="${BB-BT}" fill="#eef1f6"/>`;
+  }
+  // axis
+  g+=`<line x1="${X0-20}" y1="${AX}" x2="${X1+30}" y2="${AX}" stroke="#000" stroke-width="3"/><path d="M${X1+30},${AX-7} L${X1+44},${AX} L${X1+30},${AX+7}Z"/>`;
+  // ticks
+  [60,70,80,90,100,110,120,130].forEach(v=>{ g+=`<line x1="${x(v)}" y1="${AX+44}" x2="${x(v)}" y2="${AX+50}" stroke="#9ca3af"/>`+t(x(v),AX+66,v,{c:"#9ca3af",s:14}); });
+
+  // markers
+  const mark=(v,col,lines,top)=>{
+    g+=`<line x1="${x(v)}" y1="${top+8}" x2="${x(v)}" y2="${BT}" stroke="${col}" stroke-dasharray="2 4" stroke-width="2"/>`;
+    g+=`<rect x="${x(v)-3.5}" y="${BT-8}" width="7" height="${BB-BT+16}" fill="${col}"/>`;
+    lines.forEach((ln,i)=>{ g+=t(x(v),top-(lines.length-1-i)*26,ln,{c:col}); });
+  };
+  mark(FIN_OPEN,C.red,["Finance","opens","$60k"],160);
+  mark(WALK,C.teal,["Marketing's","walk-away","$80k"],110);
+  mark(ASK,C.teal,["Marketing's","full ask","$120k"],110);
+  mark(CEIL,C.red,["Finance's real","ceiling $140k"],160);
+
+  // dots (one per pair), stacked inside the band
+  if(s.n){
+    const bins={};
+    s.amts.forEach(a=>{ const k=Math.round(a/2.5)*2.5; (bins[k]=bins[k]||[]).push(a); });
+    Object.entries(bins).forEach(([k,arr])=>{
+      const cap=Math.floor((BB-BT-8)/13);
+      const step=arr.length>cap?(BB-BT-8)/arr.length:13;
+      arr.forEach((a,i)=>{
+        const off=(i%2?1:-1)*Math.ceil(i/2)*step;
+        g+=`<circle cx="${x(+k)}" cy="${AX+off}" r="6" fill="#fff" stroke="${C.navy}" stroke-width="2"/>`;
+      });
+    });
+    // median
+    g+=`<line x1="${x(s.med)}" y1="${BT-4}" x2="${x(s.med)}" y2="${BB+4}" stroke="${C.navy}" stroke-width="3"/>`;
+    g+=t(x(s.med),BB+58,"median "+fmtK(s.med),{s:17,b:1});
+
+    const lo=Math.max(D0,s.lo), hi=Math.min(CEIL,s.hi), yStart=Math.max(hi,WALK);
+    g+=t((x(lo)+x(hi))/2,BB+92,"where most pairs land",{c:C.red,it:1});
+    g+=t((x(lo)+x(hi))/2,BB+116,`${fmtK(s.lo)} – ${fmtK(s.hi)}`,{c:C.red,s:18});
+    if(CEIL-yStart>=8){
+      g+=t((x(yStart)+x(CEIL))/2,BB+92,"value left on the table",{it:1});
+      g+=t((x(yStart)+x(CEIL))/2,BB+116,`${fmtK(CEIL-yStart)} unclaimed`,{s:18});
+    }
+  } else {
+    g+=t((x(WALK)+x(CEIL))/2,BB+92,"waiting for results…",{c:C.grey,it:1});
+  }
+  svg.innerHTML=g;
+}
+
+/* ----- manual fallback ----- */
+function setupManual(){
+  const keys=[...BUCKETS.map(b=>[b.key,b.label]),["nd","No deal"]];
+  $("manualRows").innerHTML=keys.map(([k,l])=>`<div class="row"><label for="m_${k}">${l}</label><input id="m_${k}" type="number" min="0" value="0"></div>`).join("");
+  $("manualBtn").onclick=()=>$("manualModal").classList.remove("hidden");
+  $("manualCancel").onclick=()=>$("manualModal").classList.add("hidden");
+  $("manualClear").onclick=()=>{manual=null;$("manualModal").classList.add("hidden");render();};
+  $("manualApply").onclick=()=>{
+    manual={}; keys.forEach(([k])=>manual[k]=Math.max(0,parseInt($("m_"+k).value,10)||0));
+    $("manualModal").classList.add("hidden"); revealed=true; render();
+  };
+}
+
+/* ---------- boot ---------- */
+(async()=>{
+  try{ await initData(); }
+  catch(e){ console.error(e); api=null; }
+  if(!api){ document.body.innerHTML="<p style='padding:24px;font-family:sans-serif'>Could not load the database library. Check the internet connection.</p>"; return; }
+  if(IS_PRESENTER) startPresenter(); else startStudent();
+})();
+</script>
+</body>
+</html>
